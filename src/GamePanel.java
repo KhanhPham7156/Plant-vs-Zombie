@@ -1,41 +1,38 @@
-import javax.swing.ImageIcon;
-import javax.swing.JPanel;
-import javax.swing.event.MouseInputListener;
-
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.event.ActionListener;
-
-import java.awt.Image;
-import java.awt.Graphics;
-
-import javax.swing.ImageIcon;
-import javax.swing.JPanel;
-import javax.swing.event.MouseInputListener;
-
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.Image;
+import javax.swing.*; 
+import javax.swing.event.*; 
+import java.awt.*; 
+import java.awt.event.*; 
 
 public class GamePanel extends JPanel implements ActionListener, MouseInputListener {
     private Image background;
+    private JButton startButton;
+    private GameFrame gameFrame;
 
-    public GamePanel() {
+    public GamePanel(GameFrame gameFrame) {
+        this.gameFrame = gameFrame;
         setPreferredSize(new Dimension(800, 600));
         setBackground(Color.WHITE);
-        background = new ImageIcon("image/background.jpg").getImage();
+        background = new ImageIcon("image/menuBackground.png").getImage();
+        // Create start button
+        startButton = new JButton("Start Game");
+        startButton.setBounds(300, 270, 200, 60);
+        startButton.setIcon(new ImageIcon("image/startButton.png"));
+        startButton.addActionListener(this);
+        
+        setLayout(null); 
+        add(startButton);        
     }
 
     public void paintComponent(Graphics g) {
-        super.paintComponent(getGraphics());
+        super.paintComponent(g);
         g.drawImage(background, 0, 0, 800, 600, null);
     }
 
     @Override
-    public void mouseClicked(MouseEvent e) {
-        //Click event logic
-    }
+    public void actionPerformed(ActionEvent e) {
+        // Handle start button click events here
+        if (e.getSource() == startButton) {
+            gameFrame.switchToPlayPanel();
+        }
+    }    
 }
