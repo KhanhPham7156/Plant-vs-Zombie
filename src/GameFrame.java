@@ -10,7 +10,7 @@ public class GameFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
         //Set logo icon
-        ImageIcon icon = new ImageIcon("image/icon.jpg");
+        ImageIcon icon = new ImageIcon("image-gif/image/icon.jpg");
         setIconImage(icon.getImage());
 
         cardLayout = new CardLayout();//Tạo CardLayout

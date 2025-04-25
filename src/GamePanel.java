@@ -12,11 +12,11 @@ public class GamePanel extends JPanel implements ActionListener, MouseInputListe
         this.gameFrame = gameFrame;
         setPreferredSize(new Dimension(800, 600));
         setBackground(Color.WHITE);
-        background = new ImageIcon("image/menuBackground.png").getImage();
+        background = new ImageIcon("image-gif/image/menuBackground.png").getImage();
         // Create start button
         startButton = new JButton("Start Game");
         startButton.setBounds(300, 270, 200, 60);
-        startButton.setIcon(new ImageIcon("image/startButton.png"));
+        startButton.setIcon(new ImageIcon("image-gif/image/startButton.png"));
         startButton.addActionListener(this);
         
         setLayout(null); 
