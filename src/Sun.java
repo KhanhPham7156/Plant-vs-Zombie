@@ -17,7 +17,7 @@ public class Sun
         this.x = x;
         this.y = y;
         this.collected = false;
-        this.sunIcon = new ImageIcon("image-gif/gif/Sun.gif");
+        this.sunIcon = new ImageIcon("image-gif/gif/sun.gif");
          
         
         // Tạo timer, mỗi 100ms sẽ gọi phương thức moving
@@ -39,7 +39,7 @@ public class Sun
             if (y < 600) 
             {
                 y +=1;
-                System.out.println("Sun position: x=" + x + ", y=" + y);
+                //System.out.println("Sun position: x=" + x + ", y=" + y);
             }
         }
     }
