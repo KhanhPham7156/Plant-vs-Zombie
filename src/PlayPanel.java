@@ -13,6 +13,7 @@ public class PlayPanel extends JPanel implements ActionListener, MouseListener {
     private Timer timer;
     private int sunPoints = 0;
     private JTextField textField;
+    private ArrayList<Zombie> zombies;
 
     public PlayPanel() {
         setPreferredSize(new Dimension(800, 600));
@@ -34,6 +35,11 @@ public class PlayPanel extends JPanel implements ActionListener, MouseListener {
         timer = new Timer(16, this);
         timer.start();
 
+        //Danh sách chứa zombie
+        zombies = new ArrayList<>();
+        timer = new Timer(16, this);
+        timer.start();
+
         suns.add(new Sun(300, 60));
         setLayout(null);
     }
@@ -46,9 +52,14 @@ public class PlayPanel extends JPanel implements ActionListener, MouseListener {
         for (Sun sun : suns) {
             sun.draw(g, this);
         }
+
+        for (Zombie zombie : zombies) {
+            zombie.draw(g, this);
+        }
     }
     
     public void actionPerformed(ActionEvent e) {
+        // Xử lý suns
         Iterator<Sun> iterator = suns.iterator();
         while (iterator.hasNext()) {
             Sun sun = iterator.next();
@@ -64,6 +75,17 @@ public class PlayPanel extends JPanel implements ActionListener, MouseListener {
         }
 
         repaint();
+
+        // Xử lý zombies
+        Iterator<Zombie> zombieIterator = zombies.iterator();
+        
+
+        if (Math.random() < 0.01) { // Xác suất spawn zombie
+            int randomY = (int) (Math.random() * 400) + 100; // Vị trí Y ngẫu nhiên
+            zombies.add(new NormalZombie(800, randomY)); // Thêm zombie mới
+        }
+    
+        repaint();
     }
 
     public void mouseClicked(MouseEvent e) {
@@ -71,8 +93,8 @@ public class PlayPanel extends JPanel implements ActionListener, MouseListener {
         for (Sun sun : suns) {
             if (sun.isClicked(e.getX(), e.getY())) {
                 sun.collect(); // Thu thập Sun
-                sunPoints++;
-                textField.setText(String.valueOf(sunPoints));
+                sunPoints += 25;// Tăng điểm
+                textField.setText(String.valueOf(sunPoints));//Hiển thị lại điểm mới
             }
         }
     }
