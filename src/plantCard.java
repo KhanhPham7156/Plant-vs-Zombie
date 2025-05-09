@@ -11,7 +11,6 @@ public class plantCard extends JPanel implements MouseListener{
     private Image img;
     private ActionListener al;
 
-    
     public plantCard(Image img)
     {
         setSize(64,90);
