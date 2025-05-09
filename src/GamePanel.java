@@ -3,12 +3,15 @@ import javax.swing.event.*;
 import java.awt.*; 
 import java.awt.event.*; 
 
-public class GamePanel extends JPanel implements ActionListener, MouseInputListener {
+
+public class GamePanel extends JPanel implements ActionListener 
+{
     private Image background;
     private JButton startButton;
     private GameFrame gameFrame;
 
-    public GamePanel(GameFrame gameFrame) {
+    public GamePanel(GameFrame gameFrame) 
+    {
         this.gameFrame = gameFrame;
         setPreferredSize(new Dimension(800, 600));
         setBackground(Color.WHITE);
@@ -29,10 +32,12 @@ public class GamePanel extends JPanel implements ActionListener, MouseInputListe
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(ActionEvent e) 
+    {
         // Handle start button click events here
         if (e.getSource() == startButton) {
             gameFrame.switchToPlayPanel();
         }
-    }    
+    }
+
 }
