@@ -3,41 +3,31 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.List;
+
 
 //All game logic/features will be implemented in this class
-public class PlayPanel extends JPanel implements ActionListener, MouseListener {
+public class PlayPanel extends JPanel implements ActionListener,MouseListener 
+{
     private Image background;
     private Image plantHolder;
+    private Timer timer;
     private ArrayList<Sun> suns;
     private Timer timer;
     private int sunPoints = 0;
     private JTextField textField;
-    private ArrayList<Zombie> zombies;
 
-    public PlayPanel() {
+    
+    public PlayPanel() 
+    {
         setPreferredSize(new Dimension(800, 600));
         setBackground(Color.WHITE);
         background = new ImageIcon("image-gif/image/map1.png").getImage();
         plantHolder = new ImageIcon("image-gif/image/plantHolder.png").getImage();
-        
-        textField = new JTextField(String.valueOf(sunPoints));
-        textField.setBounds(38, 50, 100, 30);
-        textField.setEditable(false);
-        textField.setOpaque(false); // Làm nền trong suốt
-        textField.setBorder(null); // Xóa viền
-        textField.setForeground(Color.BLACK); // Màu chữ (chọn màu tương phản với nền)
-        textField.setFont(new Font("Arial", Font.BOLD, 20)); // Phông chữ rõ ràng
-        add(textField);
-        //Danh sách chứa sun
-        suns = new ArrayList<>();
-        addMouseListener(this);
-        timer = new Timer(16, this);
-        timer.start();
+        setLayout(null);
 
-        //Danh sách chứa zombie
-        zombies = new ArrayList<>();
-        timer = new Timer(16, this);
+        suns = new ArrayList<>();
+        timer = new Timer(5, this);
         timer.start();
 
         suns.add(new Sun(300, 60));
@@ -46,20 +36,19 @@ public class PlayPanel extends JPanel implements ActionListener, MouseListener {
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(background, 0, 0, 800, 600, null);
-        g.drawImage(plantHolder, 0, 0, 520, 80, null);
+        g.drawImage(background, 0, 0, 1012, 785, null);
+        g.drawImage(plantHolder,0,0,520,100,null);
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Arial", Font.BOLD, 20));
+        g.drawString(""+sunEnergy, 40, 90);
 
-        for (Sun sun : suns) {
-            sun.draw(g, this);
-        }
-
-        for (Zombie zombie : zombies) {
-            zombie.draw(g, this);
+        for (Sun sun : suns) 
+        {
+            sun.draw(g, this);// tạo ssun
         }
     }
     
     public void actionPerformed(ActionEvent e) {
-        // Xử lý suns
         Iterator<Sun> iterator = suns.iterator();
         while (iterator.hasNext()) {
             Sun sun = iterator.next();
@@ -75,17 +64,6 @@ public class PlayPanel extends JPanel implements ActionListener, MouseListener {
         }
 
         repaint();
-
-        // Xử lý zombies
-        Iterator<Zombie> zombieIterator = zombies.iterator();
-        
-
-        if (Math.random() < 0.01) { // Xác suất spawn zombie
-            int randomY = (int) (Math.random() * 400) + 100; // Vị trí Y ngẫu nhiên
-            zombies.add(new NormalZombie(800, randomY)); // Thêm zombie mới
-        }
-    
-        repaint();
     }
 
     public void mouseClicked(MouseEvent e) {
@@ -93,20 +71,32 @@ public class PlayPanel extends JPanel implements ActionListener, MouseListener {
         for (Sun sun : suns) {
             if (sun.isClicked(e.getX(), e.getY())) {
                 sun.collect(); // Thu thập Sun
-                sunPoints += 25;// Tăng điểm
-                textField.setText(String.valueOf(sunPoints));//Hiển thị lại điểm mới
+                sunPoints++;
+                textField.setText(String.valueOf(sunPoints));
             }
         }
     }
-    
-    public void mousePressed(MouseEvent e) {}
+    @Override
+    public void mousePressed(MouseEvent e) 
+    {
 
+    }
 
-    public void mouseReleased(MouseEvent e) {}
+    @Override
+    public void mouseReleased(MouseEvent e) 
+    {
+        
+    }
 
+    @Override
+    public void mouseEntered(MouseEvent e) 
+    {
+        
+    }
 
-    public void mouseEntered(MouseEvent e) {}
-
-
-    public void mouseExited(MouseEvent e) {}
-}
+    @Override
+    public void mouseExited(MouseEvent e) 
+    {
+        
+    }
+}   
