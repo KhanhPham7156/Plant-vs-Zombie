@@ -13,17 +13,11 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
     private Image plantHolder;
     private Timer timer;
     private ArrayList<Sun> suns;
-<<<<<<< HEAD
     private ArrayList<Zombie> zombies;
-    private int sunEnergy = 50;
+    private int sunEnergy = 100;
     private long lastSpawnTime = 0;
     private long lastZombieSpawnTime = 0;
     private List<Plant> plants = new ArrayList<>();
-=======
-    private int sunEnergy = 100;
-    private long lastSpawnTime = 0;
-    private List<Plant> plants = new ArrayList<>();//danh sách cây đã trồng
->>>>>>> 7e35c62c99eaf0bcbe9e537aaa9bd4269b8dbbc5
     private List<plantCard> plantCards;//vùng chọn cây
     private Image selectedPlantImage;
     private Plant selectedPlant;
