@@ -13,8 +13,10 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
     private Image plantHolder;
     private Timer timer;
     private ArrayList<Sun> suns;
+    private ArrayList<Zombie> zombies;
     private int sunEnergy = 50;
     private long lastSpawnTime = 0;
+    private long lastZombieSpawnTime = 0;
     private List<Plant> plants = new ArrayList<>();
     private List<plantCard> plantCards;//vùng chọn cây
     private Image selectedPlantImage;
@@ -31,6 +33,7 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
         setLayout(null);
 
         suns = new ArrayList<>();
+        zombies = new ArrayList<>();
         timer = new Timer(5, this);
         timer.start();
         
@@ -72,23 +75,64 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
     {
         super.paintComponent(g);
         g.drawImage(background, 0, 0, 1012, 785, null);
-        g.drawImage(plantHolder,0,0,520,100,null);
+        g.drawImage(plantHolder, 0, 0, 520, 100, null);
         g.setColor(Color.BLACK);
         g.setFont(new Font("Arial", Font.BOLD, 20));
-        g.drawString(""+sunEnergy, 40, 90);
+        g.drawString("" + sunEnergy, 40, 90);
 
-        for (Sun sun : suns) 
-        {
-            sun.draw(g, this);// tạo ssun
+        for (Sun sun : suns) {
+            sun.draw(g, this);// tạo sun
         }
-         // Vẽ cây được chọn theo con trỏ chuột
-         if (selectedPlantImage != null && mousePos != null) {
+
+        for (Zombie zombie : zombies) {
+            zombie.draw(g, this);// tạo zombie
+        }
+        // Vẽ cây được chọn theo con trỏ chuột
+        if (selectedPlantImage != null && mousePos != null) {
             g.drawImage(selectedPlantImage, mousePos.x - 32, mousePos.y - 45, 64, 90, null);
         }
     }
+    
+    private void updateGame() {
+        // Zombie
+        if (System.currentTimeMillis() - lastZombieSpawnTime > 5000) {
+            int [] rows = {100, 200, 350, 450};
+            int row = rows[(int) (Math.random() * rows.length)];
+            zombies.add(new NormalZombie(800, row));
+            lastZombieSpawnTime = System.currentTimeMillis();
+        }
 
-    private void updateGame() 
-    {
+        for (Zombie zombie : zombies) {
+            if (!zombie.isDead()) {
+                Plant nearestPlant = null;
+                for (Plant plant : plants) {
+                    if (Math.abs(plant.getY() - zombie.getY()) < 50) {
+                        if (nearestPlant == null || plant.getX() > nearestPlant.getX()) {
+                            nearestPlant = plant;
+                        }
+                    }
+                }
+
+                if (nearestPlant != null) {
+                    ((NormalZombie) zombie).updateState(nearestPlant);
+                } else {
+                    zombie.setState("walking");
+                    zombie.move();
+                }
+            }
+        }
+        
+        zombies.removeIf(Zombie::isDead);
+        plants.removeIf(plant -> plant.isDead());
+
+        for (Zombie zombie : zombies) {
+            if (zombie.hasReachedEnd(50)) {
+                JOptionPane.showMessageDialog(this, "Game Over! Zombies reached the house!");
+                System.exit(0);
+            }
+        }
+
+        // Sun
         if (System.currentTimeMillis() - lastSpawnTime > 5000) 
         {
             suns.add(new Sun((int)(Math.random() * 600), 0));

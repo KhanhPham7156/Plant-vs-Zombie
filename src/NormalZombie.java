@@ -8,11 +8,11 @@ public class NormalZombie extends Zombie {
     private String state;
 
     public NormalZombie(int x, int y) {
-        super(x, y, 10, 100, 10);
+        super(x, y, 1, 100, 10);
 
-        zombieAttack = new ImageIcon("image-gif/image/zombieAttack.gif");
-        zombieWalk = new ImageIcon("image-gif/image/zombieWalk.gif");
-        zombieDead = new ImageIcon("image-gif/image/zombieDead.gif");
+        zombieAttack = new ImageIcon("image-gif/gif/zombieAttack.gif");
+        zombieWalk = new ImageIcon("image-gif/gif/zombieWalk.gif");
+        zombieDead = new ImageIcon("image-gif/gif/zombieDead.gif");
         state = "walking";
     }
     

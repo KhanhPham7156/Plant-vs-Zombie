@@ -3,13 +3,13 @@ import java.awt.*;
 
 public class Zombie {
     private int x, y;
-    private int speed;
+    private double speed;
     private int health;
     private int damage;
     private String state;
     
 
-    public Zombie(int x, int y, int speed, int health, int damage) {
+    public Zombie(int x, int y, double speed, int health, int damage) {
         this.x = x;
         this.y = y;
         this.speed = speed;

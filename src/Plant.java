@@ -26,6 +26,10 @@ public abstract class Plant
         }
     }
 
+    public boolean isDead() {
+        return health <= 0;
+    }
+
     public void stop() {
     }
 
