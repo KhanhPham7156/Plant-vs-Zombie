@@ -34,7 +34,7 @@ public class NormalZombie extends Zombie {
         }
     }
 
-    public void updateState(/*thêm list plant */) {
+    public void updateState(Plant plant) {
         if (state.equals("dead")) {
             return; // Zombie đã chết, không làm gì
         }
