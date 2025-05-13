@@ -60,4 +60,6 @@ public abstract class Plant
     public void setGp(GamePanel gp) {
         this.gp = gp;
     }
+    public void takeDamage(int damage)
+    {}
 }
