@@ -6,25 +6,38 @@ public class Sunflower extends Plant {
     private int sunProductionRate;
     private long lastProductionTime;
     private ImageIcon sunflowerIcon; 
+    private PlayPanel parent;
 
-    public Sunflower(GamePanel parent, int x, int y) {
+    public Sunflower(PlayPanel parent, int x, int y) {
         super(parent, x, y); 
+        this.parent = parent;
         setHealth(100); // set initial health for the sunflower
-        this.sunProductionRate = 5000; // produces sun every 5 seconds (adjust as needed)
+        this.sunProductionRate = 3000; // produces sun every 5 seconds (adjust as needed)
         this.lastProductionTime = System.currentTimeMillis();
         this.sunflowerIcon = new ImageIcon("image-gif/gif/sunflower-pvz.gif"); 
     }
 
-    public int produceSun() {
+    public void produceSun() {
         if (System.currentTimeMillis() - lastProductionTime >= sunProductionRate) {
-            lastProductionTime = System.currentTimeMillis();
-            return 25; // amount of sun produced
-        }
-        return 0;
+        lastProductionTime = System.currentTimeMillis();
+        int sunX = getX() + 30;
+        int sunY = getY() + 60;
+        System.out.println("Producing Sun at (" + sunX + ", " + sunY + ")");
+        parent.addSun(sunX, sunY); // Tạo và thêm Sun thật sự vào game
+    }
     }
 
     // draw the sunflower
     public void paint(Graphics g) {
-        sunflowerIcon.paintIcon(getGp(), g, getX(), getY());
+        if (sunflowerIcon != null) {
+            sunflowerIcon.paintIcon(parent, g, getX(), getY());
+        }
+    }
+    public void update()
+    {
+        if (!isDead()) {
+            produceSun();
+            System.out.println("Sunflower updating at (" + getX() + ", " + getY() + ")");
+        }
     }
 }

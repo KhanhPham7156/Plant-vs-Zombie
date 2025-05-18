@@ -18,7 +18,7 @@ public class GamePanel extends JPanel implements ActionListener
         background = new ImageIcon("image-gif/image/menuBackground.png").getImage();
         // Create start button
         startButton = new JButton("Start Game");
-        startButton.setBounds(300, 270, 200, 60);
+        startButton.setBounds(600, 270, 200, 60);
         startButton.setIcon(new ImageIcon("image-gif/image/startButton.png"));
         startButton.addActionListener(this);
         
@@ -28,7 +28,7 @@ public class GamePanel extends JPanel implements ActionListener
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(background, 0, 0, 800, 600, null);
+        g.drawImage(background, 0, 0, 1326, 570, null);
     }
 
     @Override

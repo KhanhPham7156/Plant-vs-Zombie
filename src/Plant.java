@@ -5,18 +5,17 @@ import java.awt.Graphics;
 
 public abstract class Plant 
 {
-    private int health = 200;
-
+    private int health;
     private int x;
     private int y;
 
-    private GamePanel gp;
+    private PlayPanel parent;
 
 
-    public Plant(GamePanel parent, int x, int y) {
+    public Plant(PlayPanel parent, int x, int y) {
         this.x = x;
         this.y = y;
-        gp = parent;
+        this.parent = parent;
     }
 
     public void takeDamage(int damage) {
@@ -57,11 +56,14 @@ public abstract class Plant
         this.y = y;
     }
 
-    public GamePanel getGp() {
-        return gp;
+    public PlayPanel getGp() {
+        return parent;
     }
 
-    public void setGp(GamePanel gp) {
-        this.gp = gp;
+    public void setGp(PlayPanel gp) {
+        this.parent = gp;
     }
+    // Phương thức abstract để các lớp con triển khai
+    public abstract void update();
+    public abstract void paint(Graphics g);
 }
