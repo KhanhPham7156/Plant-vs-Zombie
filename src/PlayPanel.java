@@ -25,8 +25,8 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
     private Plant selectedPlant;
     private Point mousePos;
     // Kích thước grid để đặt cây
-    public static final int GRID_START_X = 230; // điểm bắt đầu X của grid (ước lượng từ map)
-    public static final int GRID_START_Y = 70; // điểm bắt đầu Y của grid
+    public static final int GRID_START_X = 230; // điểm bắt đầu X của grid
+    public static final int GRID_START_Y = 40; // Điều chỉnh điểm bắt đầu Y để khớp với zombie
     public static final int CELL_WIDTH = 147;    // chiều rộng mỗi ô
     public static final int CELL_HEIGHT = 100;  // chiều cao mỗi ô
     public static final int NUM_COLS = 9;       // số cột (ô ngang)
@@ -42,7 +42,7 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
 
         suns = new ArrayList<>();
         zombies = new ArrayList<>();
-        timer = new Timer(5, this);
+        timer = new Timer(16, this);
         timer.start();
         
         plantCards = new ArrayList<>();
@@ -108,14 +108,13 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
         // vẽ đạn
         for (Bullet bullet : bullets) {
             bullet.draw(g, this);
-}
-
+        }
     }
     
     private void updateGame() {
         // Zombie
         if (System.currentTimeMillis() - lastZombieSpawnTime > 5000) {
-            int [] rows = {100, 200, 350, 450};
+            int [] rows = {40, 100, 200, 300, 450}; // Điều chỉnh vị trí Y để khớp với vị trí plant
             int row = rows[(int) (Math.random() * rows.length)];
             zombies.add(new NormalZombie(800, row));
             lastZombieSpawnTime = System.currentTimeMillis();
@@ -124,18 +123,34 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
         for (Zombie zombie : zombies) {
             if (!zombie.isDead()) {
                 Plant nearestPlant = null;
+                double minDistance = Double.MAX_VALUE;
+                
                 for (Plant plant : plants) {
-                    if (Math.abs(plant.getY() - zombie.getY()) < 50) {
-                        if (nearestPlant == null || plant.getX() > nearestPlant.getX()) {
-                            nearestPlant = plant;
+                    // Kiểm tra xem zombie và plant có ở cùng hàng không
+                    int yDiff = Math.abs(zombie.getY() - plant.getY());
+                    System.out.println("Zombie Y: " + zombie.getY() + ", Plant Y: " + plant.getY() + ", Y difference: " + yDiff);
+                    
+                    // Sử dụng khoảng cách cố định cho tất cả các hàng
+                    if (yDiff <= 50) { // Cho phép sai số 50 pixels theo trục Y
+                        double distance = zombie.getX() - plant.getX();
+                        System.out.println("Zombie X: " + zombie.getX() + ", Plant X: " + plant.getX() + ", Distance: " + distance);
+                        if (distance > 0 && distance <= 100) { // Nếu zombie cách plant không quá 100 pixels
+                            if (distance < minDistance) {
+                                minDistance = distance;
+                                nearestPlant = plant;
+                            }
                         }
                     }
                 }
 
                 if (nearestPlant != null) {
+                    System.out.println("Found nearest plant at distance: " + minDistance);
                     ((NormalZombie) zombie).updateState(nearestPlant);
                 } else {
-                    zombie.setState("walking");
+                    if (!zombie.getState().equals("walking")) {
+                        System.out.println("No plant in range, changing to walking state");
+                        zombie.setState("walking");
+                    }
                     zombie.move();
                 }
             }
@@ -144,55 +159,54 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
         zombies.removeIf(Zombie::isDead);
         plants.removeIf(plant -> plant.isDead());
 
-        for (Zombie zombie : zombies) {
+        /*for (Zombie zombie : zombies) {
             if (zombie.hasReachedEnd(50)) {
                 JOptionPane.showMessageDialog(this, "Game Over! Zombies reached the house!");
                 System.exit(0);
             }
-        }
+        }*/
 
         // Sun
-        if (System.currentTimeMillis() - lastSpawnTime > 5000) 
-        {
+        if (System.currentTimeMillis() - lastSpawnTime > 5000) {
             suns.add(new Sun((int)(Math.random() * 600), 0));
             lastSpawnTime = System.currentTimeMillis();
         }
 
-        for (Sun sun : suns) 
-        {
+        for (Sun sun : suns) {
             sun.moving();
         }
 
         suns.removeIf(Sun::isCollected);
-        repaint();
-        //bullet
+        
+        // Bullet collision detection
         for (Bullet bullet : bullets) {
-        bullet.move();
-        for (Zombie zombie : zombies) {
-            if (bullet.getBounds().intersects(new Rectangle(zombie.getX(), zombie.getY(), 60, 100))) {
-                zombie.takeDamage(20);
-                bullet.deactivate();
-                break;
+            bullet.move();
+            for (Zombie zombie : zombies) {
+                if (bullet.getCollisionBox().intersects(zombie.getCollisionBox())) {
+                    zombie.takeDamage(20);
+                    bullet.deactivate();
+                    break;
+                }
             }
         }
-        for (Plant plant: plants)
-        {
+        
+        for (Plant plant : plants) {
             plant.update();
-            System.out.println("Updating plant at (" + plant.getX() + ", " + plant.getY() + ")");
         }
-    }
+        
         bullets.removeIf(b -> !b.isActive());
-}
-//thêm sun và bullet
+        repaint();
+    }
+    //thêm sun và bullet
     public void addBullet(Bullet b) {
         bullets.add(b);
-}
+    }
     public List<Sun> getSuns() {
         return suns;
-}
+    }
     public void addSun(int sunX, int sunY) {
         suns.add(new Sun(sunX, sunY));
-}
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) 
@@ -230,7 +244,7 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
     switch (type) {
         case "Peashooter": return 100;
         case "Sunflower": return 50;
-        case "Wallnut": return 75;
+        case "Wallnut": return 50;
         default: return 0;
     }
 }

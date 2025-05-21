@@ -1,23 +1,25 @@
 import java.awt.Graphics;
-import java.awt.Rectangle;
-
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 
 public class Bullet {
-private int x, y;
+    private int x, y;
     private int speed = 5;
     private ImageIcon img;
     private boolean active = true;
+    private CollisionBox collisionBox;
 
     public Bullet(int x, int y) {
         this.x = x;
         this.y = y;
         img = new ImageIcon("image-gif/image/peabullet.png");
+        // Tạo collision box nhỏ hơn hình ảnh để va chạm chính xác hơn
+        collisionBox = new CollisionBox(x, y, 15, 15);
     }
 
     public void move() {
         x += speed;
+        collisionBox.updatePosition(x, y);
         if (x > 800) {
             active = false;
         }
@@ -27,8 +29,8 @@ private int x, y;
         img.paintIcon(c, g, x, y);
     }
 
-    public Rectangle getBounds() {
-        return new Rectangle(x, y, 20, 20);
+    public CollisionBox getCollisionBox() {
+        return collisionBox;
     }
 
     public boolean isActive() {

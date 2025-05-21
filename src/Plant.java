@@ -10,18 +10,23 @@ public abstract class Plant
     private int y;
 
     private PlayPanel parent;
+    protected CollisionBox collisionBox;
+    protected ImageIcon img;
 
 
     public Plant(PlayPanel parent, int x, int y) {
         this.x = x;
         this.y = y;
         this.parent = parent;
+        // Tạo collision box cho plant
+        this.collisionBox = new CollisionBox(x, y, 64, 90);
     }
 
     public void takeDamage(int damage) {
         health -= damage;
         if (health <= 0) {
             health = 0;
+          System.out.println("Plant has died!");
         }
     }
 
@@ -46,6 +51,7 @@ public abstract class Plant
 
     public void setX(int x) {
         this.x = x;
+        collisionBox.updatePosition(x, y);
     }
 
     public int getY() {
@@ -54,6 +60,7 @@ public abstract class Plant
 
     public void setY(int y) {
         this.y = y;
+        collisionBox.updatePosition(x, y);
     }
 
     public PlayPanel getGp() {
@@ -63,6 +70,11 @@ public abstract class Plant
     public void setGp(PlayPanel gp) {
         this.parent = gp;
     }
+
+    public CollisionBox getCollisionBox() {
+        return collisionBox;
+    }
+
     // Phương thức abstract để các lớp con triển khai
     public abstract void update();
     public abstract void paint(Graphics g);

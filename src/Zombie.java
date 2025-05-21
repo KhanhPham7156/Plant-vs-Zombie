@@ -6,7 +6,9 @@ public class Zombie {
     private double speed;
     private int health;
     private int damage;
-    private String state;
+    protected String state;
+    private CollisionBox collisionBox;
+    private ImageIcon img;
     
 
     public Zombie(int x, int y, double speed, int health, int damage) {
@@ -15,13 +17,20 @@ public class Zombie {
         this.speed = speed;
         this.health = health;
         this.damage = damage;
-        state = "walking";
+        this.state = "walking";
+        // Tạo collision box cho zombie
+        this.collisionBox = new CollisionBox(x, y, 60, 100);
+        this.img = new ImageIcon("image-gif/image/zombie.png");
+        System.out.println("Zombie created with health: " + health + ", damage: " + damage);
     }
 
     public void move() {
+        if (getState().equals("walking")) {
         x -= speed;
+            collisionBox.updatePosition(x, y);
         if (x < 10) {
             x = 10;
+            }
         }
     }
 
@@ -33,15 +42,22 @@ public class Zombie {
         health -= damage;
         if (health <= 0) {
             health = 0;
+            setState("dead");
         }
     }
 
     public void attack(Plant plant) {
+        System.out.println("Base Zombie attacking plant");
+        if (collisionBox.intersects(plant.getCollisionBox())) {
+            System.out.println("Hit plant! Dealing " + damage + " damage");
         plant.takeDamage(damage);
+        } else {
+            System.out.println("Missed plant!");
+        }
     }
 
     public void draw(Graphics g, JComponent component) {
-
+        img.paintIcon(component, g, x, y);
     }
 
     public boolean isDead() {
@@ -64,7 +80,16 @@ public class Zombie {
         return state;
     }
 
+    public int getDamage() {
+        return damage;
+    }
+
     public void setState(String state) {
+        System.out.println("Zombie state changing from " + this.state + " to " + state);
         this.state = state;
+    }
+
+    public CollisionBox getCollisionBox() {
+        return collisionBox;
     }
 }

@@ -48,7 +48,7 @@ public class Sun
     {
         if (!collected) 
         {
-            System.out.println("Drawing Sun at (" + x + ", " + y + ")");
+            //System.out.println("Drawing Sun at (" + x + ", " + y + ")");
             sunIcon.paintIcon(component, g, x, y); 
         }
     }
