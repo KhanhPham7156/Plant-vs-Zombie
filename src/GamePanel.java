@@ -13,12 +13,12 @@ public class GamePanel extends JPanel implements ActionListener
     public GamePanel(GameFrame gameFrame) 
     {
         this.gameFrame = gameFrame;
-        setPreferredSize(new Dimension(800, 600));
+        setPreferredSize(new Dimension(1000, 752));
         setBackground(Color.WHITE);
         background = new ImageIcon("image-gif/image/menuBackground.png").getImage();
         // Create start button
         startButton = new JButton("Start Game");
-        startButton.setBounds(600, 270, 200, 60);
+        startButton.setBounds(400, 300, 200, 60);
         startButton.setIcon(new ImageIcon("image-gif/image/startButton.png"));
         startButton.addActionListener(this);
         
@@ -28,7 +28,7 @@ public class GamePanel extends JPanel implements ActionListener
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(background, 0, 0, 1326, 570, null);
+        g.drawImage(background, 0, 0, 1000, 752, null);
     }
 
     @Override

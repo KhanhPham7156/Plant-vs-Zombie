@@ -10,11 +10,16 @@ import javax.swing.JPanel;
 public class plantCard extends JPanel implements MouseListener{
     private Image img;
     private ActionListener al;
+    private String plantType;
+    private PlayPanel playPanel;
 
-    public plantCard(Image img)
+
+    public plantCard(Image img, String plantType, PlayPanel playPanel)
     {
         setSize(64,90);
         this.img = img;
+        this.plantType = plantType;
+        this.playPanel = playPanel;
         addMouseListener(this);
     }
     @Override
@@ -22,9 +27,6 @@ public class plantCard extends JPanel implements MouseListener{
     {
         super.paintComponent(g);
         g.drawImage(img, 0, 0, null);
-    }
-    public void setActionListener(ActionListener al) {
-        this.al = al;
     }
     @Override
     public void mouseClicked(MouseEvent e)
@@ -35,6 +37,13 @@ public class plantCard extends JPanel implements MouseListener{
     @Override
     public void mouseReleased(MouseEvent e)
     {
+        if (playPanel.getSelectedPlantType() != null && playPanel.getSelectedPlantType().equals(plantType)) {
+            // Đã chọn thẻ này rồi → nhấn lại để hủy
+            playPanel.clearSelectedPlant();
+        } else {
+            // Chọn mới
+            playPanel.setSelectedPlant(plantType, img);
+        }
         if(al != null)
         {
             al.actionPerformed(new ActionEvent(this, ActionEvent.RESERVED_ID_MAX + 1, ""));
@@ -48,4 +57,5 @@ public class plantCard extends JPanel implements MouseListener{
     @Override
     public void mouseExited(MouseEvent e)
     {}
+
 }

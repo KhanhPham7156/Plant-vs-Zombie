@@ -24,17 +24,19 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
     private ArrayList<Bullet> bullets = new ArrayList<>();
     private Plant selectedPlant;
     private Point mousePos;
+    private boolean sunJustCollected = false;
+
     // Kích thước grid để đặt cây
-    public static final int GRID_START_X = 230; // điểm bắt đầu X của grid
-    public static final int GRID_START_Y = 40; // Điều chỉnh điểm bắt đầu Y để khớp với zombie
-    public static final int CELL_WIDTH = 147;    // chiều rộng mỗi ô
-    public static final int CELL_HEIGHT = 100;  // chiều cao mỗi ô
-    public static final int NUM_COLS = 9;       // số cột (ô ngang)
-    public static final int NUM_ROWS = 5;       // số hàng (ô dọc)
+    public static final int GRID_COLS = 9;
+    public static final int GRID_ROWS = 5;
+    public static final int CELL_WIDTH = 100;
+    public static final int CELL_HEIGHT = 120;
+    public static final int GRID_START_X = 50;
+    public static final int GRID_START_Y = 90;
     
     public PlayPanel() 
     {
-        setPreferredSize(new Dimension(1326, 570));
+        setPreferredSize(new Dimension(1000, 752));
         setBackground(Color.WHITE);
         background = new ImageIcon("image-gif/image/map1.png").getImage();
         plantHolder = new ImageIcon("image-gif/image/plantHolder.png").getImage();
@@ -62,33 +64,44 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
             Image sun = new ImageIcon("image-gif/image/card_sunflower.png").getImage();
             Image wall = new ImageIcon("image-gif/image/card_nut .png").getImage();
 
-            addPlantCard(pea, 80,"Peashooter");
-            addPlantCard(sun, 160, "Sunflower");
-            addPlantCard(wall, 240,"Wallnut");
+            addPlantCard(pea, 110,"Peashooter");
+            addPlantCard(sun, 190, "Sunflower");
+            addPlantCard(wall, 270,"Wallnut");
         } catch (Exception e) {
             System.out.println("Loading: " + e.getMessage());
         }
     }
     //thêm card
     private void addPlantCard(Image img, int x,String type) {
-        plantCard card = new plantCard(img);
-        card.setBounds(x, 0, 64, 90);
-        card.setActionListener(e -> {
-            selectedPlantImage = img;
-            selectedPlantType = type;
-            repaint();
-        });
+        plantCard card = new plantCard(img,type,this);
+        card.setBounds(x, 10, 64, 90);
         plantCards.add(card);
         add(card);
+    }
+     // Getter & Setter cho lựa chọn
+    public String getSelectedPlantType() {
+        return selectedPlantType;
+    }
+
+    public void setSelectedPlant(String type, Image img) {
+        selectedPlantType = type;
+        selectedPlantImage = img;
+        repaint();
+    }
+
+    public void clearSelectedPlant() {
+        selectedPlantType = null;
+        selectedPlantImage = null;
+        repaint();
     }
     public void paintComponent(Graphics g) 
     {
         super.paintComponent(g);
-        g.drawImage(background, 0, 0, 1326, 570, null);
-        g.drawImage(plantHolder, 0, 0, 520, 100, null);
+        g.drawImage(background, 0, 0, 1000, 752, null);
+        //g.drawImage(plantHolder, 0, 0, 520, 100, null);
         g.setColor(Color.BLACK);
         g.setFont(new Font("Arial", Font.BOLD, 20));
-        g.drawString(""+sunEnergy, 30, 90);
+        g.drawString(""+sunEnergy, 40, 100);
 
         for (Sun sun : suns) {
             sun.draw(g, this);// tạo sun
@@ -103,7 +116,7 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
 
         // Vẽ cây được chọn theo con trỏ chuột
         if (selectedPlantImage != null && mousePos != null) {
-            g.drawImage(selectedPlantImage, mousePos.x - 32, mousePos.y - 45, 64, 90, null);
+            g.drawImage(selectedPlantImage, mousePos.x , mousePos.y, 64, 72, null);
         }
         // vẽ đạn
         for (Bullet bullet : bullets) {
@@ -114,7 +127,7 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
     private void updateGame() {
         // Zombie
         if (System.currentTimeMillis() - lastZombieSpawnTime > 5000) {
-            int [] rows = {40, 100, 200, 300, 450}; // Điều chỉnh vị trí Y để khớp với vị trí plant
+            int [] rows = {90, 210, 330, 450,570}; // Điều chỉnh vị trí Y để khớp với vị trí plant
             int row = rows[(int) (Math.random() * rows.length)];
             zombies.add(new NormalZombie(800, row));
             lastZombieSpawnTime = System.currentTimeMillis();
@@ -232,11 +245,14 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
     @Override
     public void mousePressed(MouseEvent e) 
     {
+        sunJustCollected = false;
         for (Sun sun : suns) {
         if (sun.isClicked(e.getX(), e.getY())) {
             sun.collect();
             sunEnergy += 25;
+            sunJustCollected = true;
             repaint(); // Cập nhật giao diện ngay
+            return;
         }
     }
     }
@@ -252,7 +268,7 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
     @Override
     public void mouseReleased(MouseEvent e) 
     {
-       if (selectedPlantType == null || selectedPlantImage == null) return;
+       if (sunJustCollected||selectedPlantType == null || selectedPlantImage == null) return;
 
     int x = e.getX();
     int y = e.getY();
@@ -261,9 +277,10 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
     int col = (x - GRID_START_X) / CELL_WIDTH;
     int row = (y - GRID_START_Y) / CELL_HEIGHT;
 
-    if (col >= 0 && col < NUM_COLS && row >= 0 && row < NUM_ROWS) {
-        int plantX = GRID_START_X + col * CELL_WIDTH + (CELL_WIDTH - 64) / 2;
-        int plantY = GRID_START_Y + row * CELL_HEIGHT + (CELL_HEIGHT - 90) / 2;
+    if (col >= 0 && col < 9 && row >= 0 && row < 5) {
+        int plantX = GRID_START_X + col * CELL_WIDTH ;
+        int plantY = GRID_START_Y + row * CELL_HEIGHT + 40;
+
 
         int cost = getPlantCost(selectedPlantType);
         if (sunEnergy >= cost) {
@@ -285,7 +302,7 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
                 plants.add(newPlant);
                 sunEnergy -= cost;
 
-                // ✅ Reset sau khi trồng nếu bạn muốn
+                // Reset sau khi trồng nếu bạn muốn
                 selectedPlantImage = null;
                 selectedPlantType = null;
 
