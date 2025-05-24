@@ -39,7 +39,6 @@ public class Sun
             if (y < 570) 
             {
                 y +=1;
-                //System.out.println("Sun position: x=" + x + ", y=" + y);
             }
         }
     }
@@ -48,7 +47,6 @@ public class Sun
     {
         if (!collected) 
         {
-            //System.out.println("Drawing Sun at (" + x + ", " + y + ")");
             sunIcon.paintIcon(component, g, x, y); 
         }
     }

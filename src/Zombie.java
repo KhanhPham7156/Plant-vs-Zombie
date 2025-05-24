@@ -9,6 +9,7 @@ public class Zombie {
     protected String state;
     private CollisionBox collisionBox;
     private ImageIcon img;
+    private long deathTime;
     
 
     public Zombie(int x, int y, double speed, int health, int damage) {
@@ -21,7 +22,6 @@ public class Zombie {
         // Tạo collision box cho zombie
         this.collisionBox = new CollisionBox(x, y, 60, 100);
         this.img = new ImageIcon("image-gif/image/zombie.png");
-        System.out.println("Zombie created with health: " + health + ", damage: " + damage);
     }
 
     public void move() {
@@ -47,13 +47,23 @@ public class Zombie {
     }
 
     public void attack(Plant plant) {
-        System.out.println("Base Zombie attacking plant");
         if (collisionBox.intersects(plant.getCollisionBox())) {
-            System.out.println("Hit plant! Dealing " + damage + " damage");
-        plant.takeDamage(damage);
+            plant.takeDamage(damage);
         } else {
             System.out.println("Missed plant!");
         }
+    }
+    
+    public void setState(String state) {
+        if (state.equals("dead") && !this.state.equals("dead")) {
+            this.deathTime = System.currentTimeMillis(); // Lưu thời điểm chuyển sang trạng thái "dead"
+        }
+        this.state = state;
+    }
+
+    public boolean isReadyToRemove() {
+        // Chỉ xóa zombie sau 2 giây kể từ khi chuyển sang trạng thái "dead"
+        return state.equals("dead") && (System.currentTimeMillis() - deathTime > 2000);
     }
 
     public void draw(Graphics g, JComponent component) {
@@ -84,10 +94,6 @@ public class Zombie {
         return damage;
     }
 
-    public void setState(String state) {
-        System.out.println("Zombie state changing from " + this.state + " to " + state);
-        this.state = state;
-    }
 
     public CollisionBox getCollisionBox() {
         return collisionBox;

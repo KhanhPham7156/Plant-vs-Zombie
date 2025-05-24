@@ -25,6 +25,7 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
     private Plant selectedPlant;
     private Point mousePos;
     private boolean sunJustCollected = false;
+    private long deathTime;
 
     // Kích thước grid để đặt cây
     public static final int GRID_COLS = 9;
@@ -44,7 +45,7 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
 
         suns = new ArrayList<>();
         zombies = new ArrayList<>();
-        timer = new Timer(16, this);
+        timer = new Timer(30, this);
         timer.start();
         
         plantCards = new ArrayList<>();
@@ -140,13 +141,10 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
                 
                 for (Plant plant : plants) {
                     // Kiểm tra xem zombie và plant có ở cùng hàng không
-                    int yDiff = Math.abs(zombie.getY() - plant.getY());
-                    System.out.println("Zombie Y: " + zombie.getY() + ", Plant Y: " + plant.getY() + ", Y difference: " + yDiff);
-                    
+                    int yDiff = Math.abs(zombie.getY() - plant.getY());             
                     // Sử dụng khoảng cách cố định cho tất cả các hàng
                     if (yDiff <= 50) { // Cho phép sai số 50 pixels theo trục Y
                         double distance = zombie.getX() - plant.getX();
-                        System.out.println("Zombie X: " + zombie.getX() + ", Plant X: " + plant.getX() + ", Distance: " + distance);
                         if (distance > 0 && distance <= 100) { // Nếu zombie cách plant không quá 100 pixels
                             if (distance < minDistance) {
                                 minDistance = distance;
@@ -157,27 +155,28 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
                 }
 
                 if (nearestPlant != null) {
-                    System.out.println("Found nearest plant at distance: " + minDistance);
                     ((NormalZombie) zombie).updateState(nearestPlant);
                 } else {
                     if (!zombie.getState().equals("walking")) {
-                        System.out.println("No plant in range, changing to walking state");
                         zombie.setState("walking");
+                    }
+                    if (zombie.getHealth() == 0) {
+                        zombie.setState("dead");
                     }
                     zombie.move();
                 }
             }
         }
         
-        zombies.removeIf(Zombie::isDead);
+        zombies.removeIf(Zombie::isReadyToRemove);
         plants.removeIf(plant -> plant.isDead());
 
-        /*for (Zombie zombie : zombies) {
-            if (zombie.hasReachedEnd(50)) {
+        for (Zombie zombie : zombies) {
+            if (zombie.hasReachedEnd(10)) {
                 JOptionPane.showMessageDialog(this, "Game Over! Zombies reached the house!");
                 System.exit(0);
             }
-        }*/
+        }
 
         // Sun
         if (System.currentTimeMillis() - lastSpawnTime > 5000) {

@@ -26,7 +26,6 @@ public abstract class Plant
         health -= damage;
         if (health <= 0) {
             health = 0;
-          System.out.println("Plant has died!");
         }
     }
 

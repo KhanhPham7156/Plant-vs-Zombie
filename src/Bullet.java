@@ -1,20 +1,52 @@
 import java.awt.Graphics;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
+import java.awt.Color;
+import java.awt.GradientPaint;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 
 public class Bullet {
     private int x, y;
     private int speed = 5;
-    private ImageIcon img;
+    private BufferedImage img;
     private boolean active = true;
     private CollisionBox collisionBox;
+    private static final int BULLET_SIZE = 20; // Increased from 15 to 20
 
     public Bullet(int x, int y) {
         this.x = x;
         this.y = y;
-        img = new ImageIcon("image-gif/image/peabullet.png");
-        // Tạo collision box nhỏ hơn hình ảnh để va chạm chính xác hơn
-        collisionBox = new CollisionBox(x, y, 15, 15);
+        
+        // Create a more attractive bullet image
+        img = new BufferedImage(BULLET_SIZE, BULLET_SIZE, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = (Graphics2D) img.getGraphics();
+        
+        // Enable anti-aliasing
+        g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, 
+                            java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        // Create gradient from medium green to dark green
+        GradientPaint gradient = new GradientPaint(
+            0, 0, new Color(0, 180, 0),      // Medium green
+            BULLET_SIZE, BULLET_SIZE, new Color(0, 100, 0),  // Dark green
+            true
+        );
+        g2d.setPaint(gradient);
+        
+        // Draw main bullet body
+        g2d.fillOval(0, 0, BULLET_SIZE-1, BULLET_SIZE-1);
+        
+        // Add highlight
+        g2d.setColor(new Color(255, 255, 255, 120));
+        g2d.fillOval(4, 4, 7, 7);
+        
+        // Add border
+        g2d.setColor(new Color(0, 80, 0));
+        g2d.drawOval(0, 0, BULLET_SIZE-1, BULLET_SIZE-1);
+        
+        g2d.dispose();
+        
+        collisionBox = new CollisionBox(x, y, BULLET_SIZE, BULLET_SIZE);
     }
 
     public void move() {
@@ -26,7 +58,9 @@ public class Bullet {
     }
 
     public void draw(Graphics g, JComponent c) {
-        img.paintIcon(c, g, x, y);
+        if (img != null) {
+            g.drawImage(img, x, y, null);
+        }
     }
 
     public CollisionBox getCollisionBox() {

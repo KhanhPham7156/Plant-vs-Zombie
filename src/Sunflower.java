@@ -22,7 +22,6 @@ public class Sunflower extends Plant {
         lastProductionTime = System.currentTimeMillis();
         int sunX = getX() + 30;
         int sunY = getY() + 60;
-        System.out.println("Producing Sun at (" + sunX + ", " + sunY + ")");
         parent.addSun(sunX, sunY); // Tạo và thêm Sun thật sự vào game
     }
     }
@@ -37,7 +36,6 @@ public class Sunflower extends Plant {
     {
         if (!isDead()) {
             produceSun();
-            System.out.println("Sunflower updating at (" + getX() + ", " + getY() + ")");
         }
     }
 }
