@@ -27,6 +27,13 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
     private boolean sunJustCollected = false;
     private long deathTime;
 
+    // Thêm các biến mới để kiểm soát spawn zombie
+    private int zombieSpawnInterval = 8000; // Bắt đầu với 8 giây
+    private int minZombieSpawnInterval = 1500; // Tối thiểu 1.5 giây
+    private int zombieSpawnDecreaseRate = 200; // Giảm 200ms mỗi lần
+    private int zombieSpawnDecreaseInterval = 20000; // Giảm mỗi 20 giây
+    private long lastZombieSpawnDecreaseTime = 0;
+
     // Kích thước grid để đặt cây
     public static final int GRID_COLS = 9;
     public static final int GRID_ROWS = 5;
@@ -126,12 +133,23 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
     }
     
     private void updateGame() {
-        // Zombie
-        if (System.currentTimeMillis() - lastZombieSpawnTime > 5000) {
-            int [] rows = {90, 210, 330, 450,570}; // Điều chỉnh vị trí Y để khớp với vị trí plant
+        // Zombie spawn logic
+        long currentTime = System.currentTimeMillis();
+        
+        // Giảm thời gian spawn zombie theo thời gian
+        if (currentTime - lastZombieSpawnDecreaseTime > zombieSpawnDecreaseInterval) {
+            zombieSpawnInterval = Math.max(minZombieSpawnInterval, 
+                                         zombieSpawnInterval - zombieSpawnDecreaseRate);
+            lastZombieSpawnDecreaseTime = currentTime;
+            System.out.println("Zombie spawn interval decreased to: " + zombieSpawnInterval + "ms");
+        }
+
+        // Spawn zombie
+        if (currentTime - lastZombieSpawnTime > zombieSpawnInterval) {
+            int[] rows = {90, 210, 330, 450, 570};
             int row = rows[(int) (Math.random() * rows.length)];
             zombies.add(new NormalZombie(800, row));
-            lastZombieSpawnTime = System.currentTimeMillis();
+            lastZombieSpawnTime = currentTime;
         }
 
         for (Zombie zombie : zombies) {
