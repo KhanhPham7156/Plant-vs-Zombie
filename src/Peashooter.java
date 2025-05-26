@@ -28,6 +28,6 @@ public class Peashooter extends Plant
 
     @Override
     public void paint(Graphics g) {
-        img.paintIcon(getGp(), g, getX(), getY());
+        img.paintIcon(getGp(), g, getX(), getY() );
     }
 }

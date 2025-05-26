@@ -38,57 +38,47 @@ public class NormalZombie extends Zombie {
         }
     }
     
-    @Override
-    public void move() {
-        if (getState().equals("walking")) {
-            super.move();
-        }
-    }
-
-    public void updateState(Plant plant) {
-        if (getState().equals("dead")) {
-            return;
+        @Override
+        public void move() {
+            if (getState().equals("walking")) {
+                super.move();
+            }
         }
 
-        // Kiểm tra xem zombie và plant có ở cùng hàng không
-        int yDiff = Math.abs(getY() - plant.getY());
-        boolean sameRow = yDiff <= 50; // Tăng khoảng cách cho phép lên 50 pixels
-        
-        
-        // Chỉ xử lý nếu ở cùng hàng
-        if (sameRow) {
-            double distance = getX() - plant.getX(); // Khoảng cách từ zombie đến plant
-            
-            // Zombie phải ở bên phải plant và trong phạm vi tấn công
-            if (distance > 0 && distance <= ATTACK_RANGE) {
+        public void updateState(Plant plant) {
+            if (getState().equals("dead")) {
+                return;
+            }
+
+            boolean isColliding = getCollisionBox().intersects(plant.getCollisionBox());
+            if (isColliding) {
                 if (!getState().equals("attacking")) {
                     setState("attacking");
                 }
-                
-                // Kiểm tra cooldown trước khi tấn công
+
                 long currentTime = System.currentTimeMillis();
                 if (currentTime - lastAttackTime >= ATTACK_COOLDOWN) {
                     attack(plant);
                     lastAttackTime = currentTime;
                 }
-        } else {
+            } else {
+                // If no collision, revert to walking
                 if (!getState().equals("walking")) {
                     setState("walking");
+                }
+            }
         }
-    }
-        }
-    }
 
-    @Override
-    public void attack(Plant plant) {
-        plant.takeDamage(getDamage());
-    }
+        @Override
+        public void attack(Plant plant) {
+            plant.takeDamage(getDamage());
+        }
 
-    @Override
-    public void takeDamage(int damage) {
-        super.takeDamage(damage);
-        if (getHealth() <= 0) {
-            setState("dead");
+        @Override
+        public void takeDamage(int damage) {
+            super.takeDamage(damage);
+            if (getHealth() <= 0) {
+                setState("dead");
+            }
         }
     }
-}

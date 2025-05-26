@@ -12,7 +12,7 @@ public class Sunflower extends Plant {
         super(parent, x, y); 
         this.parent = parent;
         setHealth(100); // set initial health for the sunflower
-        this.sunProductionRate = 3000; // produces sun every 5 seconds (adjust as needed)
+        this.sunProductionRate = 7000; // produces sun every 7 seconds (adjust as needed)
         this.lastProductionTime = System.currentTimeMillis();
         this.sunflowerIcon = new ImageIcon("image-gif/gif/sunflower-pvz.gif"); 
     }

@@ -1,14 +1,10 @@
 import javax.swing.*;
-import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
-//All game logic/features will be implemented in this class
-public class PlayPanel extends JPanel implements ActionListener,MouseListener 
-{
+public class PlayPanel extends JPanel implements ActionListener, MouseListener {
     private Image background;
     private Image plantHolder;
     private Timer timer;
@@ -18,32 +14,37 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
     private long lastSpawnTime = 0;
     private long lastZombieSpawnTime = 0;
     private List<Plant> plants = new ArrayList<>();
-    private List<plantCard> plantCards;//vùng chọn cây
+    private List<plantCard> plantCards;
     private Image selectedPlantImage;
     private String selectedPlantType;
     private ArrayList<Bullet> bullets = new ArrayList<>();
-    private Plant selectedPlant;
     private Point mousePos;
     private boolean sunJustCollected = false;
-    private long deathTime;
 
-    // Thêm các biến mới để kiểm soát spawn zombie
-    private int zombieSpawnInterval = 8000; // Bắt đầu với 8 giây
-    private int minZombieSpawnInterval = 1500; // Tối thiểu 1.5 giây
-    private int zombieSpawnDecreaseRate = 200; // Giảm 200ms mỗi lần
-    private int zombieSpawnDecreaseInterval = 20000; // Giảm mỗi 20 giây
+    // Countdown variables
+    private long countdownDuration = 20000; // 20 seconds in milliseconds
+    private long countdownStartTime;
+    private boolean isCountdownActive = true;
+
+    // Zombie spawn control
+    private int zombieSpawnInterval = 10000; // Start with 10 seconds
+    private int minZombieSpawnInterval = 1500; // Minimum 1.5 seconds
+    private int zombieSpawnDecreaseRate = 200; // Decrease by 200ms
+    private int zombieSpawnDecreaseInterval = 20000; // Decrease every 20 seconds
     private long lastZombieSpawnDecreaseTime = 0;
 
-    // Kích thước grid để đặt cây
+    // Shovel variables
+    private boolean isShovelSelected = false;
+    private Image shovelImage;
+    // Grid constants
     public static final int GRID_COLS = 9;
     public static final int GRID_ROWS = 5;
     public static final int CELL_WIDTH = 100;
     public static final int CELL_HEIGHT = 120;
     public static final int GRID_START_X = 50;
     public static final int GRID_START_Y = 90;
-    
-    public PlayPanel() 
-    {
+
+    public PlayPanel() {
         setPreferredSize(new Dimension(1000, 752));
         setBackground(Color.WHITE);
         background = new ImageIcon("image-gif/image/map1.png").getImage();
@@ -53,11 +54,12 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
         suns = new ArrayList<>();
         zombies = new ArrayList<>();
         timer = new Timer(30, this);
+        countdownStartTime = System.currentTimeMillis(); // Start countdown
         timer.start();
-        
+
         plantCards = new ArrayList<>();
         loadPlantCards();
-        //bắt chuyển động chuột
+
         addMouseMotionListener(new MouseMotionAdapter() {
             public void mouseMoved(MouseEvent e) {
                 mousePos = e.getPoint();
@@ -66,108 +68,137 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
         });
         addMouseListener(this);
     }
-    public void loadPlantCards(){
+
+    public void loadPlantCards() {
         try {
             Image pea = new ImageIcon("image-gif/image/card_peashooter.png").getImage();
             Image sun = new ImageIcon("image-gif/image/card_sunflower.png").getImage();
             Image wall = new ImageIcon("image-gif/image/card_nut .png").getImage();
+            shovelImage = new ImageIcon("image-gif/image/card_shovel .png").getImage(); // Assume a shovel image exists
 
-            addPlantCard(pea, 110,"Peashooter");
+            addPlantCard(pea, 110, "Peashooter");
             addPlantCard(sun, 190, "Sunflower");
-            addPlantCard(wall, 270,"Wallnut");
+            addPlantCard(wall, 270, "Wallnut");
+            addPlantCard(shovelImage, 700, "Shovel"); // Add shovel card
         } catch (Exception e) {
             System.out.println("Loading: " + e.getMessage());
         }
     }
-    //thêm card
-    private void addPlantCard(Image img, int x,String type) {
-        plantCard card = new plantCard(img,type,this);
-        card.setBounds(x, 10, 64, 90);
-        plantCards.add(card);
-        add(card);
+
+    private void addPlantCard(Image img, int x, String type) {
+        plantCard card = new plantCard(img, type, this);
+        
+        if(type.equals("Shovel"))
+        {
+            card.setBounds(x,10,50,50);
+            plantCards.add(card);
+            add(card);
+        }
+        else{
+            card.setBounds(x, 10, 64, 90);
+            plantCards.add(card);
+            add(card);
+        }
     }
-     // Getter & Setter cho lựa chọn
+
     public String getSelectedPlantType() {
         return selectedPlantType;
     }
 
     public void setSelectedPlant(String type, Image img) {
-        selectedPlantType = type;
-        selectedPlantImage = img;
+        if (type.equals("Shovel")) {
+            isShovelSelected = true;
+            selectedPlantType = null;
+            selectedPlantImage = null;
+        } else {
+            isShovelSelected = false;
+            selectedPlantType = type;
+            selectedPlantImage = img;
+        }
         repaint();
     }
 
     public void clearSelectedPlant() {
         selectedPlantType = null;
         selectedPlantImage = null;
+        isShovelSelected = false;
         repaint();
     }
-    public void paintComponent(Graphics g) 
-    {
+
+    @Override
+    public void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.drawImage(background, 0, 0, 1000, 752, null);
-        //g.drawImage(plantHolder, 0, 0, 520, 100, null);
         g.setColor(Color.BLACK);
         g.setFont(new Font("Arial", Font.BOLD, 20));
-        g.drawString(""+sunEnergy, 40, 100);
+        g.drawString("" + sunEnergy, 40, 100);
 
-        for (Sun sun : suns) {
-            sun.draw(g, this);// tạo sun
+        // Display countdown
+        if (isCountdownActive) {
+            long timeElapsed = System.currentTimeMillis() - countdownStartTime;
+            long timeRemaining = Math.max(0, countdownDuration - timeElapsed);
+            int secondsRemaining = (int) (timeRemaining / 1000);
+            g.setColor(Color.RED);
+            g.setFont(new Font("Arial", Font.BOLD, 30));
+            g.drawString("Zombies incoming in: " + secondsRemaining + "s", 350, 350);
         }
 
+        for (Sun sun : suns) {
+            sun.draw(g, this);
+        }
         for (Zombie zombie : zombies) {
-            zombie.draw(g, this);// tạo zombie
+            zombie.draw(g, this);
         }
         for (Plant plant : plants) {
             plant.paint(g);
         }
-
-        // Vẽ cây được chọn theo con trỏ chuột
         if (selectedPlantImage != null && mousePos != null) {
-            g.drawImage(selectedPlantImage, mousePos.x , mousePos.y, 64, 72, null);
+            g.drawImage(selectedPlantImage, mousePos.x, mousePos.y, 64, 72, null);
+        } else if (isShovelSelected && mousePos != null) {
+            g.drawImage(shovelImage, mousePos.x, mousePos.y, 64, 72, null); // Show shovel cursor
         }
-        // vẽ đạn
         for (Bullet bullet : bullets) {
             bullet.draw(g, this);
         }
     }
-    
+
     private void updateGame() {
-        // Zombie spawn logic
         long currentTime = System.currentTimeMillis();
-        
-        // Giảm thời gian spawn zombie theo thời gian
-        if (currentTime - lastZombieSpawnDecreaseTime > zombieSpawnDecreaseInterval) {
-            zombieSpawnInterval = Math.max(minZombieSpawnInterval, 
-                                         zombieSpawnInterval - zombieSpawnDecreaseRate);
-            lastZombieSpawnDecreaseTime = currentTime;
-            System.out.println("Zombie spawn interval decreased to: " + zombieSpawnInterval + "ms");
+
+        // Check countdown
+        if (isCountdownActive) {
+            if (currentTime - countdownStartTime >= countdownDuration) {
+                isCountdownActive = false; // Countdown finished, allow zombie spawning
+            }
         }
 
-        // Spawn zombie
-        if (currentTime - lastZombieSpawnTime > zombieSpawnInterval) {
-            int[] rows = {90, 210, 330, 450, 570};
-            int row = rows[(int) (Math.random() * rows.length)];
-            zombies.add(new NormalZombie(800, row));
-            lastZombieSpawnTime = currentTime;
+        // Zombie spawn logic
+        if (!isCountdownActive) {
+            if (currentTime - lastZombieSpawnDecreaseTime > zombieSpawnDecreaseInterval) {
+                zombieSpawnInterval = Math.max(minZombieSpawnInterval, 
+                                               zombieSpawnInterval - zombieSpawnDecreaseRate);
+                lastZombieSpawnDecreaseTime = currentTime;
+                System.out.println("Zombie spawn interval decreased to: " + zombieSpawnInterval + "ms");
+            }
+
+            if (currentTime - lastZombieSpawnTime > zombieSpawnInterval) {
+                int[] rows = {90, 210, 330, 450, 570};
+                int row = rows[(int) (Math.random() * rows.length)];
+                zombies.add(new NormalZombie(800, row));
+                lastZombieSpawnTime = currentTime;
+            }
         }
 
+        // Update zombies
         for (Zombie zombie : zombies) {
             if (!zombie.isDead()) {
                 Plant nearestPlant = null;
-                double minDistance = Double.MAX_VALUE;
-                
                 for (Plant plant : plants) {
-                    // Kiểm tra xem zombie và plant có ở cùng hàng không
-                    int yDiff = Math.abs(zombie.getY() - plant.getY());             
-                    // Sử dụng khoảng cách cố định cho tất cả các hàng
-                    if (yDiff <= 50) { // Cho phép sai số 50 pixels theo trục Y
-                        double distance = zombie.getX() - plant.getX();
-                        if (distance > 0 && distance <= 100) { // Nếu zombie cách plant không quá 100 pixels
-                            if (distance < minDistance) {
-                                minDistance = distance;
-                                nearestPlant = plant;
-                            }
+                    int yDiff = Math.abs(zombie.getY() - (plant.getY() - 40));
+                    if (yDiff <= CELL_HEIGHT / 2) {
+                        if (zombie.getCollisionBox().intersects(plant.getCollisionBox())) {
+                            nearestPlant = plant;
+                            break;
                         }
                     }
                 }
@@ -178,16 +209,17 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
                     if (!zombie.getState().equals("walking")) {
                         zombie.setState("walking");
                     }
-                    if (zombie.getHealth() == 0) {
-                        zombie.setState("dead");
-                    }
                     zombie.move();
+                }
+
+                if (zombie.getHealth() <= 0 && !zombie.getState().equals("dead")) {
+                    zombie.setState("dead");
                 }
             }
         }
-        
+
         zombies.removeIf(Zombie::isReadyToRemove);
-        plants.removeIf(plant -> plant.isDead());
+        plants.removeIf(Plant::isDead);
 
         for (Zombie zombie : zombies) {
             if (zombie.hasReachedEnd(10)) {
@@ -196,10 +228,9 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
             }
         }
 
-        // Sun
-        if (System.currentTimeMillis() - lastSpawnTime > 5000) {
+        if (currentTime - lastSpawnTime > 10000) {
             suns.add(new Sun((int)(Math.random() * 600), 0));
-            lastSpawnTime = System.currentTimeMillis();
+            lastSpawnTime = currentTime;
         }
 
         for (Sun sun : suns) {
@@ -207,8 +238,7 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
         }
 
         suns.removeIf(Sun::isCollected);
-        
-        // Bullet collision detection
+
         for (Bullet bullet : bullets) {
             bullet.move();
             for (Zombie zombie : zombies) {
@@ -219,34 +249,44 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
                 }
             }
         }
-        
+
         for (Plant plant : plants) {
             plant.update();
         }
-        
+
         bullets.removeIf(b -> !b.isActive());
         repaint();
     }
-    //thêm sun và bullet
+
     public void addBullet(Bullet b) {
         bullets.add(b);
     }
+
     public List<Sun> getSuns() {
         return suns;
     }
+
     public void addSun(int sunX, int sunY) {
         suns.add(new Sun(sunX, sunY));
     }
 
+    private int getPlantCost(String type) {
+        switch (type) {
+            case "Peashooter": return 100;
+            case "Sunflower": return 50;
+            case "Wallnut": return 50;
+            default: return 0;
+        }
+    }
+
     @Override
-    public void actionPerformed(ActionEvent e) 
-    {
+    public void actionPerformed(ActionEvent e) {
         updateGame();
         repaint();
     }
+
     @Override
-    public void mouseClicked(MouseEvent e) 
-    {
+    public void mouseClicked(MouseEvent e) {
         int x = e.getX();
         int y = e.getY();
 
@@ -255,89 +295,106 @@ public class PlayPanel extends JPanel implements ActionListener,MouseListener
                 sun.collect();
                 sunEnergy += 25;
                 repaint();
-                return; // Ngừng xử lý sau khi nhặt
+                return;
             }
         }
     }
+
     @Override
-    public void mousePressed(MouseEvent e) 
-    {
+    public void mousePressed(MouseEvent e) {
         sunJustCollected = false;
         for (Sun sun : suns) {
-        if (sun.isClicked(e.getX(), e.getY())) {
-            sun.collect();
-            sunEnergy += 25;
-            sunJustCollected = true;
-            repaint(); // Cập nhật giao diện ngay
-            return;
-        }
-    }
-    }
-    private int getPlantCost(String type) {
-    switch (type) {
-        case "Peashooter": return 100;
-        case "Sunflower": return 50;
-        case "Wallnut": return 50;
-        default: return 0;
-    }
-}
-
-    @Override
-    public void mouseReleased(MouseEvent e) 
-    {
-       if (sunJustCollected||selectedPlantType == null || selectedPlantImage == null) return;
-
-    int x = e.getX();
-    int y = e.getY();
-
-    // Tính toán vị trí trên grid
-    int col = (x - GRID_START_X) / CELL_WIDTH;
-    int row = (y - GRID_START_Y) / CELL_HEIGHT;
-
-    if (col >= 0 && col < 9 && row >= 0 && row < 5) {
-        int plantX = GRID_START_X + col * CELL_WIDTH ;
-        int plantY = GRID_START_Y + row * CELL_HEIGHT + 40;
-
-
-        int cost = getPlantCost(selectedPlantType);
-        if (sunEnergy >= cost) {
-            Plant newPlant = null;
-
-            switch (selectedPlantType) {
-                case "Peashooter":
-                    newPlant = new Peashooter(this, plantX, plantY);
-                    break;
-                case "Sunflower":
-                    newPlant = new Sunflower(this, plantX, plantY);
-                    break;
-                case "Wallnut":
-                    newPlant = new Wallnut(this, plantX, plantY);
-                    break;
-            }
-
-            if (newPlant != null) {
-                plants.add(newPlant);
-                sunEnergy -= cost;
-
-                // Reset sau khi trồng nếu bạn muốn
-                selectedPlantImage = null;
-                selectedPlantType = null;
-
+            if (sun.isClicked(e.getX(), e.getY())) {
+                sun.collect();
+                sunEnergy += 25;
+                sunJustCollected = true;
                 repaint();
+                return;
             }
         }
     }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        if (sunJustCollected) return;
+
+        int x = e.getX();
+        int y = e.getY();
+
+        // Calculate grid position
+        int col = (x - GRID_START_X) / CELL_WIDTH;
+        int row = (y - GRID_START_Y) / CELL_HEIGHT;
+
+        if (col >= 0 && col < GRID_COLS && row >= 0 && row < GRID_ROWS) {
+            int plantX = GRID_START_X + col * CELL_WIDTH;
+            int plantY = GRID_START_Y + row * CELL_HEIGHT + 40; // Keep +40 offset
+
+            if (isShovelSelected) {
+                // Remove plant at the clicked grid cell
+                Plant plantToRemove = null;
+                for (Plant plant : plants) {
+                    if (plant.getX() == plantX && plant.getY() == plantY) {
+                        plantToRemove = plant;
+                        break;
+                    }
+                }
+
+                if (plantToRemove != null) {
+                    plants.remove(plantToRemove);
+                    isShovelSelected = false; // Clear shovel selection
+                    repaint();
+                } else {
+                    JOptionPane.showMessageDialog(this, "No plant to remove in this cell!");
+                }
+                return;
+            }
+
+            if (selectedPlantType == null || selectedPlantImage == null) return;
+
+            // Check if a plant already exists at this grid cell
+            boolean cellOccupied = false;
+            for (Plant plant : plants) {
+                if (plant.getX() == plantX && plant.getY() == plantY) {
+                    cellOccupied = true;
+                    break;
+                }
+            }
+
+            if (cellOccupied) {
+                JOptionPane.showMessageDialog(this, "A plant is already placed in this cell!");
+                return;
+            }
+
+            int cost = getPlantCost(selectedPlantType);
+            if (sunEnergy >= cost) {
+                Plant newPlant = null;
+
+                switch (selectedPlantType) {
+                    case "Peashooter":
+                        newPlant = new Peashooter(this, plantX, plantY);
+                        break;
+                    case "Sunflower":
+                        newPlant = new Sunflower(this, plantX, plantY);
+                        break;
+                    case "Wallnut":
+                        newPlant = new Wallnut(this, plantX, plantY);
+                        break;
+                }
+
+                if (newPlant != null) {
+                    plants.add(newPlant);
+                    sunEnergy -= cost;
+                    selectedPlantImage = null;
+                    selectedPlantType = null;
+                    repaint();
+                }
+            }
+        }
     }
 
     @Override
-    public void mouseEntered(MouseEvent e) 
-    {
-        
-    }
+    public void mouseEntered(MouseEvent e) {}
 
     @Override
-    public void mouseExited(MouseEvent e) 
-    {
-        
-    }
-}   
+    public void mouseExited(MouseEvent e) {}
+}
